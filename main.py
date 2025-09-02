@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from discord import FFmpegPCMAudio
+from discord import FFmpegPCMAudio,TextChannel
 import random
 import yt_dlp
 import json
@@ -8,6 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 from classes import Base,Poll,MusicQueue,MemberLog
+
 
 engine = create_engine("sqlite:///bot_data.db")
 
@@ -46,7 +47,7 @@ async def list_commands(ctx):
 
 @bot.event
 async def on_member_join(member):
-    channel = discord.utils.get(member.guild.text_channels, name="general")
+    channel: TextChannel = discord.utils.get(member.guild.text_channels, name="general")
     if channel:
         await channel.send(f"Welcome {member.mention} to {member.guild.name}! 🎉")
 
@@ -60,12 +61,13 @@ async def on_member_join(member):
         session.add(log)
         session.commit()
 
-async def on_member_leaves(member):
-    channel = discord.utils.get(member.guild.text_channels, name="general")
+@bot.event
+async def on_member_remove(member):
+    channel: TextChannel = discord.utils.get(member.guild.text_channels, name="general")
     if channel:
         await channel.send(f"{member.name} has left the server.")
 
-    # Log leave in the database
+
     with SessionLocal() as session:
         log = MemberLog(
             member_id=member.id,
